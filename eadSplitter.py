@@ -58,24 +58,26 @@ def main():
 		for k,v in main_ead.items.items():
 			row = []
 			row.append(k.replace('aspace','cbpf'))
-			title = v.xpath('descendant::e:unittitle/text()',namespaces=main_ead.XPATH_NS_MAP)
-			if title == []:
+			title = v.xpath('string(descendant::e:unittitle)',namespaces=main_ead.XPATH_NS_MAP)
+			if title == [] or not title:
 				row.append('')
 			else:
-				row.append(title[0])
+				row.append(title)
 			date  = v.xpath('descendant::e:unitdate/text()',namespaces=main_ead.XPATH_NS_MAP)
 			if date == []:
 				row.append('')
 			else:
 				row.append(date[0])
-			desc = v.xpath('descendant::e:scopecontent/e:p/text()',namespaces=main_ead.XPATH_NS_MAP)
-			if desc == []:
+			desc = v.xpath('string(descendant::e:scopecontent/e:p)',namespaces=main_ead.XPATH_NS_MAP)
+			if desc == [] or not desc:
 				row.append('')
 			else:
-				row.append(desc[0])
+				row.append(desc)
 			print(row)
 			writer.writerow(row)
 
 if __name__ == "__main__":
 	main()
+
+
 
