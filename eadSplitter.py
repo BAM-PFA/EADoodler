@@ -13,6 +13,7 @@ class EAD:
 		self.XMLNS = "urn:isbn:1-931666-22-9"
 		self._EAD = "{{}}".format(self.XMLNS)
 		self.XSI_NS = "http://www.w3.org/2001/XMLSchema-instance" 
+		self.XLINK = "http://www.w3.org/1999/xlink"
 		self.SCHEMA_LOCATION = ("urn:isbn:1-931666-22-9 "
 			"http://www.loc.gov/ead/ead.xsd")
 		# reference for namespace inclusion: 
@@ -21,7 +22,8 @@ class EAD:
 
 		self.NS_MAP = {
 			None:self.XMLNS,
-			'xsi':self.XSI_NS
+			'xsi':self.XSI_NS,
+			'xlink':self.XLINK
 			}
 		# can't use an empty namespace alias with xpath
 		self.XPATH_NS_MAP = {
@@ -46,12 +48,7 @@ class EAD:
 			print(_id)
 			self.items[_id[0]] = item
 
-def main():
-	path = sys.argv[1]
-	main_ead = EAD(path)
-
-	main_ead.get_items()
-
+def get_id_and_items(main_ead):
 	with open('out.csv','w+') as f:
 		writer = csv.writer(f)
 
@@ -75,6 +72,16 @@ def main():
 				row.append(desc)
 			print(row)
 			writer.writerow(row)
+
+def main():
+	path = sys.argv[1]
+	main_ead = EAD(path)
+
+	main_ead.get_items()
+
+	get_id_and_items(main_ead)
+	replace_attr(main_ead,)
+	
 
 if __name__ == "__main__":
 	main()
