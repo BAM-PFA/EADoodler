@@ -1,60 +1,52 @@
 #!/usr/bin/env python3
+import argparse
 import csv
 import json
 from lxml import etree
 import os
 import sys
 
-class EAD:
-	def __init__(self,path):
+import eadDocument
 
-		self.tree = etree.parse(path)
-
-		self.XMLNS = "urn:isbn:1-931666-22-9"
-		self._EAD = "{{}}".format(self.XMLNS)
-		self.XSI_NS = "http://www.w3.org/2001/XMLSchema-instance" 
-		self.XLINK = "http://www.w3.org/1999/xlink"
-		self.SCHEMA_LOCATION = ("urn:isbn:1-931666-22-9 "
-			"http://www.loc.gov/ead/ead.xsd")
-		# reference for namespace inclusion: 
-		# https://stackoverflow.com/questions/46405690/how-to-include-the-namespaces-into-a-xml-file-using-lxml
-		self.attr_qname = etree.QName(self.XSI_NS, "schemaLocation")
-
-		self.NS_MAP = {
-			None:self.XMLNS,
-			'xsi':self.XSI_NS,
-			'xlink':self.XLINK
-			}
-		# can't use an empty namespace alias with xpath
-		self.XPATH_NS_MAP = {
-			'e':self.XMLNS
-			}
-
-		self.items = {}
-
-	def get_items(self):
-		ead_tree = self.tree
-		all_items = ead_tree.xpath(
-			'//e:*[starts-with(name(), "c0")][@level="file" or @level="item"]',
-			namespaces= self.XPATH_NS_MAP
+def set_args():
+	parser = argparse.ArgumentParser()
+	parser.add_argument(
+		'-i','--inputPath',
+		help='path path to EAD XML file',
+		required=True
+		)
+	parser.add_argument(
+		'-m','--mode',
+		choices=['items','replace'],
+		default='items',
+		help=(
+			"Choose from:\n"
+			"items (return a CSV including item/folder-level units and their respective system IDs)\n"
+			"replace (given a CSV of what to replace and under what condition, find and replace with supplied value, "
+				"i.e. 'replace value x with y where id==z'\n"
+				"See the example replace.csv for help.\n"
+				"Note that this will create a new CSV file with '_new' appended to the filename."
+			),
+		required=True
+		)
+	parser.add_argument(
+		'-r','--replaceCsvPath',
+		help=(
+			'Path to CSV file with parameters to replace.'
 			)
-		print(len(all_items))
+		)
 
-		for item in all_items:
-			_id = item.xpath(
-			'@id',
-			namespaces=self.XPATH_NS_MAP
-			)
-			print(_id)
-			self.items[_id[0]] = item
+	return parser.parse_args()
 
 def get_id_and_items(main_ead):
-	with open('out.csv','w+') as f:
+	main_ead.get_items()
+
+	with open('items-and-ids.csv','w+') as f:
 		writer = csv.writer(f)
 
 		for k,v in main_ead.items.items():
 			row = []
-			row.append(k.replace('aspace','cbpf'))
+			row.append(k)#.replace('aspace','cbpf'))
 			title = v.xpath('string(descendant::e:unittitle)',namespaces=main_ead.XPATH_NS_MAP)
 			if title == [] or not title:
 				row.append('')
@@ -73,18 +65,20 @@ def get_id_and_items(main_ead):
 			print(row)
 			writer.writerow(row)
 
+def replace_attr(main_ead,replaceCsvPath):
+
+
+
 def main():
-	path = sys.argv[1]
-	main_ead = EAD(path)
+	args = set_args()
+	main_ead = EAD(args.inputPath)
+	if args.mode == 'items':
+		get_id_and_items(main_ead)
 
-	main_ead.get_items()
-
-	get_id_and_items(main_ead)
-	replace_attr(main_ead,)
-	
+	if args.mode == 'replace' and args.replaceCsvPath != None:
+		replace_attr(main_ead,args.replaceCsvPath)
+	else:
+		print("You need to specify the CSV with the replacement parameters. Try Again!")
 
 if __name__ == "__main__":
 	main()
-
-
-
