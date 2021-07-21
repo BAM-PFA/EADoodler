@@ -66,7 +66,20 @@ def get_id_and_items(main_ead):
 			writer.writerow(row)
 
 def replace_attr(main_ead,replaceCsvPath):
+	with open(replaceCsvPath,'r') as f:
+		reader = csv.reader(f)
 
+		ead_tree = main_ead.tree
+
+		for row in reader:
+			target_xpath = row[0]
+			condition_value = row [1]
+			replacement_value = row[2]
+			target_xpath = target_xpath.replace("VALUE",condition_value)
+
+			target = ead_tree.xpath(target_xpath,namespaces=main_ead.XPATH_NS_MAP)
+
+			# now update the value
 
 
 def main():
