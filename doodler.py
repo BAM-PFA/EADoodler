@@ -3,10 +3,8 @@ import argparse
 import csv
 import json
 from lxml import etree
-import os
-import sys
 
-import eadDocument
+from eadDocument import EAD
 
 def set_args():
 	parser = argparse.ArgumentParser()
@@ -65,9 +63,12 @@ def get_id_and_items(main_ead):
 			print(row)
 			writer.writerow(row)
 
-def replace_attr(main_ead,replaceCsvPath):
-	with open(replaceCsvPath,'r') as f:
+def replace_something(main_ead,replaceCsvPath):
+	outpath = main_ead.filepath.replace('.xml','_new.xml')
+	print(outpath)
+	with open(replaceCsvPath,'r') as f:#, open('out.xml','w+') as o:
 		reader = csv.reader(f)
+		next(reader, None)
 
 		ead_tree = main_ead.tree
 
@@ -78,9 +79,27 @@ def replace_attr(main_ead,replaceCsvPath):
 			target_xpath = target_xpath.replace("VALUE",condition_value)
 
 			target = ead_tree.xpath(target_xpath,namespaces=main_ead.XPATH_NS_MAP)
+			print("This is the result of your XPATH expression (it shouldn't be an empty list!):")
+			print(target[0])
+			try:
+				if target[0].is_attribute:
+					attribute = target[0].attrname
+					tag = target[0].getparent()
+					tag.attrib[attribute] = replacement_value
+			except:
+				pass
+			try:
+				target[0].text = replacement_value
+			except:
+				pass
 
+			# target[0] = 'bob'#.getparent().attrib['{http://www.w3.org/1999/xlink}href'] = 'bob'
 			# now update the value
+			# print(target[0].is_attribute)
+			# print(target[0].getparent().attrib)
+			# print(ead_tree.xpath(target_xpath,namespaces=main_ead.XPATH_NS_MAP))
 
+		ead_tree.write(outpath)
 
 def main():
 	args = set_args()
@@ -89,7 +108,7 @@ def main():
 		get_id_and_items(main_ead)
 
 	if args.mode == 'replace' and args.replaceCsvPath != None:
-		replace_attr(main_ead,args.replaceCsvPath)
+		replace_something(main_ead,args.replaceCsvPath)
 	else:
 		print("You need to specify the CSV with the replacement parameters. Try Again!")
 

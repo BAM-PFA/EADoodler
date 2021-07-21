@@ -9,7 +9,7 @@ do stuff:
 class EAD:
 	def __init__(self,path):
 
-        self.filepath = path
+		self.filepath = path
 
 		self.tree = etree.parse(path)
 
@@ -31,7 +31,7 @@ class EAD:
 		# can't use an empty namespace alias with xpath
 		self.XPATH_NS_MAP = {
 			'e':self.XMLNS,
-            'xsi':self.XSI_NS,
+			'xsi':self.XSI_NS,
 			'xlink':self.XLINK
 			}
 
