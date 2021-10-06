@@ -43,12 +43,12 @@ class EAD:
 			'//e:*[starts-with(name(), "c0")][@level="file" or @level="item"]',
 			namespaces= self.XPATH_NS_MAP
 			)
-		print(len(all_items))
+		# print(len(all_items))
 
 		for item in all_items:
 			_id = item.xpath(
 			'@id',
 			namespaces=self.XPATH_NS_MAP
 			)
-			print(_id)
+			# print(_id)
 			self.items[_id[0]] = item

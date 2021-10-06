@@ -41,26 +41,46 @@ def get_id_and_items(main_ead):
 
 	with open('items-and-ids.csv','w+') as f:
 		writer = csv.writer(f)
+		headers = ["IDENTIFIER","SERIES/SUBSERIES CONTEXT","ITEM TITLE","DATE(S)","SCOPE & CONTENT NOTE"]
+		writer.writerow(headers)
 
 		for k,v in main_ead.items.items():
+			# print(v)
 			row = []
-			row.append(k)#.replace('aspace','cbpf'))
+			row.append(k)
+
+			# get the immediate series and/or subseries for context
+			context = main_ead.tree.xpath(
+				'//e:*[@id="{}"]/\
+				ancestor::e:*[@level="series" or @level="subseries"]/\
+				e:did/\
+				e:unittitle/\
+				text()'.format(k),
+				namespaces=main_ead.XPATH_NS_MAP
+				)
+			context = " | ".join(context)
+			print(context)
+			row.append(context)
+
 			title = v.xpath('string(descendant::e:unittitle)',namespaces=main_ead.XPATH_NS_MAP)
 			if title == [] or not title:
 				row.append('')
 			else:
 				row.append(title)
+
 			date  = v.xpath('descendant::e:unitdate/text()',namespaces=main_ead.XPATH_NS_MAP)
 			if date == []:
 				row.append('')
 			else:
 				row.append(date[0])
+
 			desc = v.xpath('string(descendant::e:scopecontent/e:p)',namespaces=main_ead.XPATH_NS_MAP)
 			if desc == [] or not desc:
 				row.append('')
 			else:
 				row.append(desc)
-			print(row)
+
+			# print(row)
 			writer.writerow(row)
 
 def replace_something(main_ead,replaceCsvPath):
@@ -93,12 +113,6 @@ def replace_something(main_ead,replaceCsvPath):
 			except:
 				pass
 
-			# target[0] = 'bob'#.getparent().attrib['{http://www.w3.org/1999/xlink}href'] = 'bob'
-			# now update the value
-			# print(target[0].is_attribute)
-			# print(target[0].getparent().attrib)
-			# print(ead_tree.xpath(target_xpath,namespaces=main_ead.XPATH_NS_MAP))
-
 		ead_tree.write(outpath)
 
 def main():
@@ -109,7 +123,7 @@ def main():
 
 	if args.mode == 'replace' and args.replaceCsvPath != None:
 		replace_something(main_ead,args.replaceCsvPath)
-	else:
+	elif args.mode == 'replace' and args.replaceCsvPath == None:
 		print("You need to specify the CSV with the replacement parameters. Try Again!")
 
 if __name__ == "__main__":
